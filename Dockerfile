@@ -23,7 +23,8 @@ RUN apt update &&                                        \
     subversion                                                \
     apt-utils                                                 \
     wget                                                      \
-    lzip
+    lzip                                                      \
+    tor
 
 #Set GCC-11 and G++-11 as the default compilers
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
@@ -35,6 +36,7 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
 
 #Set working directory
 WORKDIR /tmp
+
 
 #Build variable
 ARG BUILDTHREADS=4
@@ -136,6 +138,15 @@ RUN apt update && apt install -y  \
                   base58          \
                   factordb-python      
 
+# build FACT0RN
+RUN git clone https://github.com/FACT0RN/FACT0RN           && \
+    cd /tmp/FACT0RN/src                                    && \
+    make -C depends NO_QT=1                                && \
+    ./autogen.sh                                           && \
+    ./configure --prefix=`pwd`/depends/x86_64-pc-linux-gnu && \ 
+    make -j 4         
+
+
 WORKDIR /tmp/factoring
 
 #Copy the entire repo into the image
@@ -190,6 +201,11 @@ COPY docker/yafu.ini /tmp/yafu
 ENV OMP_PROC_BIND="TRUE"
 ENV MSIEVE_BIN="/tmp/ggnfs-bin"
 ENV YAFU_BIN="/tmp/yafu/yafu"
+ENV RPC_USER="rpcuser"
+ENV PROXY="127.0.0.1:9050"
+
+RUN echo "rpc_user=$RPC_USER\nrpc_pass=$(echo $RANDOM | md5sum | head -c 20)\nproxy=$PROXY" > /tmp/.factorn/factorn.conf && \
+    factornd -daemon --datadir /tmp/.factorn
 
 WORKDIR /tmp/factoring/python
 
