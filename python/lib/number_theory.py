@@ -9,14 +9,14 @@ from time import time
 import sympy as sp
 import os
 
-MSIEVE_BIN = os.environ.get("MSIEVE_BIN", "NONE") 
+MSIEVE_BIN = os.environ.get("MSIEVE_BIN", "NONE")
 YAFU_BIN   = os.environ.get("YAFU_BIN",   "NONE")
 CADO_BIN   = os.environ.get("CADO_BIN",   "NONE")
 YAFU_THREADS   = os.environ.get("YAFU_THREADS",   "4")
 YAFU_LATHREADS = os.environ.get("YAFU_LATHREADS", "4")
 
 #Factoring libraries
-USE_PARI = True if ( (YAFU_BIN == "NONE") or (YAFU_BIN == "NONE")) else False
+USE_PARI = YAFU_BIN in ["NONE", "NONE"]
 
 if USE_PARI:
   import cypari2 as cp
@@ -39,22 +39,20 @@ SKIP_RO_SQUFOF     = 4
 SKIP_ECM_STAGE_TWO = 8
 
 def pollard(n, limit=1000):
-    x = 2
-    y = 2
-    d = 1
-    l = 0
-    def g(x):
-      return x*x + 1
-    while d == 1 and l <= limit:
-        x = g(x) 
-        y = g(g(y)) 
-        d = gcd(abs(x - y), n)
-        #print(n,l)
-        l += 1
-    if n > d > 1:
-      return n//d, d
-    else:
-      return []
+  x = 2
+  y = 2
+  d = 1
+  l = 0
+  def g(x):
+    return x**2 + 1
+
+  while d == 1 and l <= limit:
+      x = g(x) 
+      y = g(g(y)) 
+      d = gcd(abs(x - y), n)
+      #print(n,l)
+      l += 1
+  return (n//d, d) if n > d > 1 else []
     
     
 def cadonfs_factor_driver(n):
@@ -99,41 +97,25 @@ def yafu_factor_driver(n):
 def cfactor(n):
   print("[*] pari factoring: %d..." % n)
   f0 = pari_cfactor(n)
-  factors  = [int(a) for a in f0[0]]
-  return factors
+  return [int(a) for a in f0[0]]
 
 def external_factorization(n):
   factors = []
 
-  if USE_PARI:
-      factors = cfactor(n)
-  else:
-      factors = yafu_factor_driver(n)
-
-  #YAFU already uses msieve
-  #if len(factors) == 0:
-  #  factors = msieve_factor_driver(n)
-  return factors
+  return cfactor(n) if USE_PARI else yafu_factor_driver(n)
 
 def factorization_handler(n):
   print("[*] Factoring:",n)
 
 
-  #Turn this off for now. There seems to be an issue connecting to the database site.
-  #F = getfdb(n)
-  F = []
-
-  if len(F) == 0:
-    factors = external_factorization(n)
-    print("[+] factors: %s" % str(factors))
-  else:
+  if F := []:
     print("fdb got: %d factors: %s" % (len(F),str(F)))
     factors = []
     for f in F:
-      if is_prime(f):
-        factors += [f]
-      else:
-        factors += external_factorization(f)
+      factors += [f] if is_prime(f) else external_factorization(f)
+  else:
+    factors = external_factorization(n)
+    print(f"[+] factors: {str(factors)}")
   factors = sorted(factors)
   #There seems to be an issue with the website for FactorDB. Turn off for now.
   #send2fdb(n,factors)

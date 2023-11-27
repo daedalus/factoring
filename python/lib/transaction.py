@@ -22,16 +22,16 @@ def tx_encode_coinbase_height(height):
 
 def make_P2PKH_from_public_key( publicKey = "03564213318d739994e4d9785bf40eac4edbfa21f0546040ce7e6859778dfce5d4" ):
     from hashlib import sha256 as sha256
-   
+
     address   = sha256( bytes.fromhex( publicKey) ).hexdigest()
     address   = hashlib.new('ripemd160', bytes.fromhex( address ) ).hexdigest()
-    address   = bytes.fromhex("00" + address)
+    address = bytes.fromhex(f"00{address}")
     addressCS = sha256(                address     ).hexdigest()
     addressCS = sha256( bytes.fromhex( addressCS ) ).hexdigest()
     addressCS = addressCS[:8]
     address   = address.hex() + addressCS
     address   = base58.b58encode( bytes.fromhex(address))
-    
+
     return address
     
 def tx_make_coinbase(coinbase_script, pubkey_script, value, height, wit_commitment):
@@ -48,9 +48,7 @@ def tx_make_coinbase(coinbase_script, pubkey_script, value, height, wit_commitme
     # See https://en.bitcoin.it/wiki/Transaction
     coinbase_script = tx_encode_coinbase_height(height) + coinbase_script
 
-    tx = ""
-    # version
-    tx += "02000000"
+    tx = "" + "02000000"
     # in-counter
     tx += "01"
     # input[0] prev hash
@@ -115,7 +113,7 @@ def tx_compute_merkle_root(tx_hashes):
 
         tx_hashes_new = []
 
-        for i in range(len(tx_hashes) // 2):
+        for _ in range(len(tx_hashes) // 2):
             # Concatenate the next two
             concat = tx_hashes.pop(0) + tx_hashes.pop(0)
             # Hash them

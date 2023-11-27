@@ -8,7 +8,7 @@ import random
 import os
 
 RPC_PORT     = os.environ.get("RPC_PORT", "8332")
-RPC_URL      = os.environ.get("RPC_URL", "http://127.0.0.1:"+ str(RPC_PORT) )
+RPC_URL = os.environ.get("RPC_URL", f"http://127.0.0.1:{str(RPC_PORT)}")
 RPC_USER     = os.environ.get("RPC_USER", "rpcuser")
 RPC_PASS     = os.environ.get("RPC_PASS", "rpcpass")
 
@@ -26,7 +26,7 @@ def rpc(method, params=None):
 
     rpc_id = random.getrandbits(32)
     data = json.dumps({"id": rpc_id, "method": method, "params": params}).encode()
-    auth = base64.encodebytes((RPC_USER + ":" + RPC_PASS).encode()).decode().strip()
+    auth = base64.encodebytes(f"{RPC_USER}:{RPC_PASS}".encode()).decode().strip()
 
     request = urllib.request.Request(RPC_URL, data, {"Authorization": "Basic {:s}".format(auth)})
 

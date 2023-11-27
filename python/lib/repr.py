@@ -28,11 +28,11 @@ def int2varinthex(value):
     if value < 0xfd:
         return int2lehex(value, 1)
     elif value <= 0xffff:
-        return "fd" + int2lehex(value, 2)
+        return f"fd{int2lehex(value, 2)}"
     elif value <= 0xffffffff:
-        return "fe" + int2lehex(value, 4)
+        return f"fe{int2lehex(value, 4)}"
     else:
-        return "ff" + int2lehex(value, 8)
+        return f"ff{int2lehex(value, 8)}"
 
 
 def bitcoinaddress2hash160(addr):
@@ -46,11 +46,8 @@ def bitcoinaddress2hash160(addr):
 
     table = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-    hash160 = 0
     addr = addr[::-1]
-    for i, c in enumerate(addr):
-        hash160 += (58 ** i) * table.find(c)
-
+    hash160 = sum((58 ** i) * table.find(c) for i, c in enumerate(addr))
     # Convert number to 50-byte ASCII Hex string
     hash160 = "{:050x}".format(hash160)
 
