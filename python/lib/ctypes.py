@@ -15,10 +15,7 @@ class uint256(ctypes.Structure):
     _fields_=[("data", ctypes.c_uint64 * 4 )]
     
 def uint256ToInt( m ):
-    ans = 0    
-    for idx,a in enumerate(m):
-        ans += a << (idx*64)
-    return ans
+    return sum(a << (idx*64) for idx, a in enumerate(m))
 
 def uint1024ToInt( m ):
     ans = 0    
@@ -46,12 +43,10 @@ def IntToUint1024( m ):
 def hashToArray( Hash ):
     if Hash == 0:
         return [0,0,0,0]
-    
+
     number = int(Hash,16)
     MASK = (1 << 64) - 1
-    arr = [ ( number >> 64*(jj) )&MASK for jj in range(0, 4) ]    
-    
-    return arr
+    return [ ( number >> 64*(jj) )&MASK for jj in range(0, 4) ]
 
 gHash = ctypes.CDLL("../libs/gHash.so").gHash
 gHash.restype = uint1024

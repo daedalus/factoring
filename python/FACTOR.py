@@ -24,12 +24,14 @@ SCRIPTPUBKEY = os.environ.get("SCRIPTPUBKEY")
 #to help avoid mistakes and losing coins. If you know enough to complain
 #about not allowing other types of scriptPubKey then you know enough
 #to modify this and make it suit your needs.
-if SCRIPTPUBKEY == None:
+if SCRIPTPUBKEY is None:
     print("Your scriptPubKey has not been set. Set the environmental variable SCRIPTPUBKEY with a scriptPubKey from any address in your wallet.")
     exit(1)
 
 if ( len(SCRIPTPUBKEY) != 44 ):
-    print("Your scriptPubKey ("+str(SCRIPTPUBKEY)+") is not a standard 22 byte scriptPubKey.")
+    print(
+        f"Your scriptPubKey ({str(SCRIPTPUBKEY)}) is not a standard 22 byte scriptPubKey."
+    )
     print("Please check and verify this is correct. Your mining rewards will be lost if you proceed with scriptPubKey address.")
     exit(2)
 
@@ -37,20 +39,18 @@ Count = 0
 
 def mine():
     global SCRIPTPUBKEY
-    if SCRIPTPUBKEY == None:
+    if SCRIPTPUBKEY is None:
         SCRIPTPUBKEY = sys.argv[1].strip()
-        
+
     os.system("mkdir -p logs")
     pid = os.getpid()
-    fplogs = open("logs/factoring_%d.log" % pid,"a")     
-   
-    while True:
-        B = CBlock()
-        B.fplogs = fplogs
-        print("[+] SCRIPTPUBKEY: %s" % SCRIPTPUBKEY)
-        if B.mine( mine_latest_block = True, scriptPubKey = SCRIPTPUBKEY ):
-            B.rpc_submitblock()
-    fplogs.close()
+    with open("logs/factoring_%d.log" % pid,"a") as fplogs:
+        while True:
+            B = CBlock()
+            B.fplogs = fplogs
+            print(f"[+] SCRIPTPUBKEY: {SCRIPTPUBKEY}")
+            if B.mine( mine_latest_block = True, scriptPubKey = SCRIPTPUBKEY ):
+                B.rpc_submitblock()
     
 if __name__ == "__main__":
     mine()

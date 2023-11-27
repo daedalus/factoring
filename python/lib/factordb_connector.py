@@ -10,7 +10,7 @@ logger = logging.getLogger("global_logger")
 
 def _send2fdb(composite, factors):
     factors = map(str, factors)
-    payload = {"report": str(composite) + "=" + "*".join(factors)}
+    payload = {"report": f"{str(composite)}=" + "*".join(factors)}
     url = "http://factordb.com/report.php"
     headers = {
         "User-Agent": "Mozilla/5.0",
@@ -23,7 +23,7 @@ def _send2fdb(composite, factors):
     webpage = str(response.data.decode("utf-8"))
 
     msg = re.findall("Found [0-9] factors and [0-9] ECM", webpage)[0]
-    print("[+] FactorDB: " + msg)
+    print(f"[+] FactorDB: {msg}")
     #if msg != "":
     #    if msg == "Found 0 factors and 0 ECM":
     #        logger.info("[!] All the factors we found are already known to factordb")
@@ -43,19 +43,15 @@ def send2fdb(composite, factors):
 from factordb.factordb import FactorDB
 
 def _getfdb(n):
-  print("[*] FactorDB: Checking composite: %d..." % n)
-  f = FactorDB(n)
-  r = f.connect()
-  if str(r) == "<Response [200]>":
+    print("[*] FactorDB: Checking composite: %d..." % n)
+    f = FactorDB(n)
+    r = f.connect()
+    if str(r) != "<Response [200]>":
+        return []
     tmp = [int(x[0]) for x in f.get_factor_from_api()]
     #print("debug:",tmp)
     #print(r.text)
-    if tmp[0] != n:
-      return tmp
-    else:
-      return []
-  else:
-    return []
+    return tmp if tmp[0] != n else []
     
     
 def getfdb(n):
